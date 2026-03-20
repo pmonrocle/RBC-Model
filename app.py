@@ -129,7 +129,9 @@ sy     = float(np.std(lny, ddof=1))
 # ── Header ─────────────────────────────────────────────────────────────────
 st.markdown(
     f"## Correlación cruzada con ln(y/y$_{{ss}}$) "
-    f"$\\sigma={sig_},\\; \\psi={psi_}$"
+    f"<span style='font-size:16px; color:#9ca3af; font-weight:400'>"
+    f"$\\sigma={sig_},\\; \\psi={psi_}$</span>",
+    unsafe_allow_html=True,
 )
  
  
