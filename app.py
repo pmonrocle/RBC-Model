@@ -5,80 +5,21 @@ from scipy.linalg import ordqz
 
 st.set_page_config(page_title="RBC — Correlaciones cruzadas", layout="centered")
 
-# Benchmark fijo 
+# Parámetros fijos
 BENCH = dict(alpha=0.36, beta=0.99, delta=0.025, rho=0.90,
              sig_eps=0.01, l_ss=0.33, T=50_000, seed=7)
 
-# Sidebar 
+# Sidebar
 
-# Benchmark card — shown first, above the sliders
-st.sidebar.markdown(
-    """
-    <div style="
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.10);
-        border-radius: 10px;
-        padding: 14px 16px 10px;
-        margin-bottom: 18px;
-    ">
-        <p style="
-            margin: 0 0 10px 0;
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 0.10em;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.35);
-        ">Parámetros fijos</p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 4px;">
-            <div style="text-align:center; background: rgba(255,255,255,0.06);
-                        border-radius:7px; padding: 7px 4px;">
-                <div style="font-size:18px; font-weight:600; color:#e8eaf0;
-                            font-family: 'Georgia', serif; line-height:1">0.36</div>
-                <div style="font-size:10px; color:rgba(255,255,255,0.40);
-                            margin-top:3px; letter-spacing:.04em">α</div>
-            </div>
-            <div style="text-align:center; background: rgba(255,255,255,0.06);
-                        border-radius:7px; padding: 7px 4px;">
-                <div style="font-size:18px; font-weight:600; color:#e8eaf0;
-                            font-family: 'Georgia', serif; line-height:1">0.99</div>
-                <div style="font-size:10px; color:rgba(255,255,255,0.40);
-                            margin-top:3px; letter-spacing:.04em">β</div>
-            </div>
-            <div style="text-align:center; background: rgba(255,255,255,0.06);
-                        border-radius:7px; padding: 7px 4px;">
-                <div style="font-size:18px; font-weight:600; color:#e8eaf0;
-                            font-family: 'Georgia', serif; line-height:1">0.025</div>
-                <div style="font-size:10px; color:rgba(255,255,255,0.40);
-                            margin-top:3px; letter-spacing:.04em">δ</div>
-            </div>
-            <div style="text-align:center; background: rgba(255,255,255,0.06);
-                        border-radius:7px; padding: 7px 4px;">
-                <div style="font-size:18px; font-weight:600; color:#e8eaf0;
-                            font-family: 'Georgia', serif; line-height:1">0.90</div>
-                <div style="font-size:10px; color:rgba(255,255,255,0.40);
-                            margin-top:3px; letter-spacing:.04em">ρ</div>
-            </div>
-            <div style="text-align:center; background: rgba(255,255,255,0.06);
-                        border-radius:7px; padding: 7px 4px;">
-                <div style="font-size:18px; font-weight:600; color:#e8eaf0;
-                            font-family: 'Georgia', serif; line-height:1">1%</div>
-                <div style="font-size:10px; color:rgba(255,255,255,0.40);
-                            margin-top:3px; letter-spacing:.04em">σ_ε</div>
-            </div>
-            <div style="text-align:center; background: rgba(255,255,255,0.06);
-                        border-radius:7px; padding: 7px 4px;">
-                <div style="font-size:18px; font-weight:600; color:#e8eaf0;
-                            font-family: 'Georgia', serif; line-height:1">0.33</div>
-                <div style="font-size:10px; color:rgba(255,255,255,0.40);
-                            margin-top:3px; letter-spacing:.04em">l_ss</div>
-            </div>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+# Benchmark — simple list, theme-safe
+st.sidebar.markdown("**Parámetros fijo**")
+for label, val in [("α", 0.36), ("β", 0.99), ("δ", 0.025),
+                   ("ρ", 0.90), ("σ_ε", "1%"), ("l_ss", 0.33)]:
+    st.sidebar.markdown(f"`{label}` = **{val}**")
 
-st.sidebar.markdown("**Parámetros ajustables**")
+st.sidebar.divider()
+
+st.sidebar.markdown("**Parámetros libres**")
 sigma = st.sidebar.slider("σ — aversión al riesgo (consumo)", 0.5, 6.0, 2.0, 0.1)
 psi   = st.sidebar.slider("ψ — curvatura del ocio",           0.5, 5.0, 1.0, 0.1)
 
@@ -155,7 +96,7 @@ def xcorr(y, x, lag):
     return float(np.corrcoef(a, b)[0, 1])
 
 
-# Run 
+# Run
 if run_btn or "sim" not in st.session_state:
     with st.spinner("Simulando…"):
         try:
@@ -192,7 +133,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Tabs 
+# Tabs
 for tab, keys in zip(
     st.tabs(["Todas", "Consumo", "Capital", "Inversión", "Horas"]),
     [["c","k","i","l"], ["c"], ["k"], ["i"], ["l"]],
@@ -222,7 +163,7 @@ for tab, keys in zip(
         )
         st.plotly_chart(fig, use_container_width=True)
 
-# Stats 
+# Stats
 col1, col2 = st.columns(2)
 
 with col1:
@@ -250,4 +191,3 @@ st.caption(
     "Capital: pico en lags positivos (variable predeterminada). "
     "lag k > 0 → x adelanta a y k periodos."
 )
-
