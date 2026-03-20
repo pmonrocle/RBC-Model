@@ -28,7 +28,7 @@ st.sidebar.markdown(
             letter-spacing: 0.10em;
             text-transform: uppercase;
             color: rgba(255,255,255,0.35);
-        ">Benchmark fijo</p>
+        ">Parámetros fijos</p>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 4px;">
             <div style="text-align:center; background: rgba(255,255,255,0.06);
                         border-radius:7px; padding: 7px 4px;">
@@ -78,7 +78,7 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
-st.sidebar.markdown("**Parámetros libres**")
+st.sidebar.markdown("**Parámetros ajustables**")
 sigma = st.sidebar.slider("σ — aversión al riesgo (consumo)", 0.5, 6.0, 2.0, 0.1)
 psi   = st.sidebar.slider("ψ — curvatura del ocio",           0.5, 5.0, 1.0, 0.1)
 
