@@ -10,7 +10,7 @@ BENCH = dict(alpha=0.36, beta=0.99, delta=0.025, rho=0.90,
              sig_eps=0.01, l_ss=0.33, T=50_000, seed=7)
  
 # ── Sidebar ────────────────────────────────────────────────────────────────
-st.sidebar.title("Parámetros libres")
+st.sidebar.title("Parámetros")
 sigma = st.sidebar.slider("σ — aversión al riesgo (consumo)", 0.5, 6.0, 2.0, 0.1)
 psi   = st.sidebar.slider("ψ — curvatura del ocio",           0.5, 5.0, 1.0, 0.1)
  
