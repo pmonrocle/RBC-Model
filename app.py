@@ -11,7 +11,7 @@ BENCH = dict(alpha=0.36, beta=0.99, delta=0.025, rho=0.90,
  
 # ── Sidebar ────────────────────────────────────────────────────────────────
  
-# Benchmark
+# Benchmark — LaTeX notation
 st.sidebar.markdown("**Parámetros fijos**")
 bench_params = [
     (r"\alpha",        BENCH["alpha"]),
@@ -127,8 +127,10 @@ cc     = {v: [xcorr(lny, sim[v], lag) for lag in lags] for v in ["c","k","i","l"
 sy     = float(np.std(lny, ddof=1))
  
 # ── Header ─────────────────────────────────────────────────────────────────
-st.markdown("## Correlación cruzada con ln(y/y$_{ss}$)")
-st.latex(rf"\sigma = {sig_}, \quad \psi = {psi_}")
+st.markdown(
+    f"## Correlación cruzada con ln(y/y$_{{ss}}$) "
+    f"$\\sigma={sig_},\\; \\psi={psi_}$"
+)
  
  
 # ── Tabs ───────────────────────────────────────────────────────────────────
