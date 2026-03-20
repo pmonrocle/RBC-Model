@@ -11,7 +11,7 @@ BENCH = dict(alpha=0.36, beta=0.99, delta=0.025, rho=0.90,
  
 # ── Sidebar ────────────────────────────────────────────────────────────────
  
-# Benchmark 
+# Benchmark
 st.sidebar.markdown("**Benchmark fijo**")
 bench_params = [
     (r"\alpha",        BENCH["alpha"]),
@@ -127,18 +127,9 @@ cc     = {v: [xcorr(lny, sim[v], lag) for lag in lags] for v in ["c","k","i","l"
 sy     = float(np.std(lny, ddof=1))
  
 # ── Header ─────────────────────────────────────────────────────────────────
-st.markdown(
-    f"## Correlación cruzada con ln(y/y<sub>ss</sub>) "
-    f"<small style='color:#8b90a0'>σ={sig_}, ψ={psi_}</small>",
-    unsafe_allow_html=True,
-)
-st.markdown(
-    f"<p style='font-family:monospace;font-size:12px;color:#8b90a0'>"
-    f"α={BENCH['alpha']} · β={BENCH['beta']} · δ={BENCH['delta']} · "
-    f"ρ={BENCH['rho']} · σ_ε={BENCH['sig_eps']*100:.0f}% · "
-    f"T={BENCH['T']:,} · l_ss={BENCH['l_ss']}</p>",
-    unsafe_allow_html=True,
-)
+st.markdown("## Correlación cruzada con ln(y/y$_{ss}$)")
+st.latex(rf"\sigma = {sig_}, \quad \psi = {psi_}")
+ 
  
 # ── Tabs ───────────────────────────────────────────────────────────────────
 for tab, keys in zip(
@@ -174,27 +165,39 @@ for tab, keys in zip(
 col1, col2 = st.columns(2)
  
 with col1:
-    st.markdown("**Volatilidades relativas · σ(x)/σ(y)**")
-    st.markdown(f"σ(y) &nbsp; **{sy*100:.2f}%**", unsafe_allow_html=True)
-    for v, lbl in [("c","σ(c)/σ(y)"), ("k","σ(k)/σ(y)"),
-                   ("i","σ(i)/σ(y)"), ("l","σ(l)/σ(y)")]:
-        st.markdown(f"{lbl} &nbsp; **{np.std(sim[v], ddof=1)/sy:.3f}**",
-                    unsafe_allow_html=True)
+    st.markdown(r"**Volatilidades relativas** $\sigma(x)/\sigma(y)$")
+    vol_rows = [
+        (r"\sigma(y)",   f"{sy*100:.2f}%"),
+        (r"\sigma(c)/\sigma(y)", f"{np.std(sim['c'],ddof=1)/sy:.3f}"),
+        (r"\sigma(k)/\sigma(y)", f"{np.std(sim['k'],ddof=1)/sy:.3f}"),
+        (r"\sigma(i)/\sigma(y)", f"{np.std(sim['i'],ddof=1)/sy:.3f}"),
+        (r"\sigma(l)/\sigma(y)", f"{np.std(sim['l'],ddof=1)/sy:.3f}"),
+    ]
+    for sym, val in vol_rows:
+        c_sym, c_val = st.columns([2, 1])
+        c_sym.latex(sym)
+        c_val.markdown(f"**{val}**")
  
 with col2:
-    st.markdown("**Correlación contemporánea · lag 0**")
-    for v, lbl in [("c","corr(y, c)"), ("k","corr(y, k)"),
-                   ("i","corr(y, i)"), ("l","corr(y, l)")]:
-        val  = cc[v][lag0]
+    st.markdown("**Correlación contemporánea** · lag 0")
+    corr_rows = [
+        (r"\text{corr}(y,\, c)", cc["c"][lag0]),
+        (r"\text{corr}(y,\, k)", cc["k"][lag0]),
+        (r"\text{corr}(y,\, i)", cc["i"][lag0]),
+        (r"\text{corr}(y,\, l)", cc["l"][lag0]),
+    ]
+    for sym, val in corr_rows:
+        c_sym, c_val = st.columns([2, 1])
+        c_sym.latex(sym)
         sign = "+" if val >= 0 else ""
-        st.markdown(f"{lbl} &nbsp; **{sign}{val:.4f}**", unsafe_allow_html=True)
+        c_val.markdown(f"**{sign}{val:.4f}**")
  
 # ── Footer ─────────────────────────────────────────────────────────────────
 st.divider()
-st.caption(
-    f"σ={sig_} → mayor aversión al riesgo suaviza el consumo (σ(c)/σ(y) ↓). "
-    f"ψ={psi_} → mayor curvatura amortigua la respuesta del trabajo (σ(l)/σ(y) ↓). "
+st.markdown(
+    f"*σ={sig_}* → mayor aversión al riesgo suaviza el consumo. "
+    f"*ψ={psi_}* → mayor curvatura amortigua la respuesta del trabajo. "
     "Inversión: la más procíclica en lag 0. "
     "Capital: pico en lags positivos (variable predeterminada). "
-    "lag k > 0 → x adelanta a y k periodos."
+    "lag *k* > 0 → *x* adelanta a *y* *k* periodos."
 )
