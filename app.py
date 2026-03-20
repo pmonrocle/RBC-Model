@@ -13,7 +13,7 @@ BENCH = dict(alpha=0.33, beta=0.99, delta=0.025, rho=0.90,
 
 # Benchmark — simple list, theme-safe
 st.sidebar.markdown("**Parámetros fijo**")
-for label, val in [("α", 0.36), ("β", 0.99), ("δ", 0.025),
+for label, val in [("α", 0.33), ("β", 0.99), ("δ", 0.025),
                    ("ρ", 0.90), ("σ_ε", "1%"), ("l_ss", 0.33)]:
     st.sidebar.markdown(f"`{label}` = **{val}**")
 
