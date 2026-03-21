@@ -151,7 +151,7 @@ for tab, keys in zip(
                 hovertemplate="lag %{x}: %{y:.4f}<extra>" + NAMES[v] + "</extra>",
             ))
         fig.update_layout(
-            xaxis=dict(title=r"$\text{Lag } k \;\cdot\; \text{corr}(y_t,\, x_{t+k})$",
+             xaxis=dict(title="Lag k  ·  corr(y_t , x_{t+k})",
                        tickmode="array", tickvals=lags,
                        gridcolor="rgba(200,200,200,0.08)"),
             yaxis=dict(title="Correlación", range=[-0.25, 1.05],
