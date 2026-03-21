@@ -11,18 +11,14 @@ BENCH = dict(alpha=0.36, beta=0.99, delta=0.025, rho=0.90,
  
 # ── Sidebar ────────────────────────────────────────────────────────────────
  
-# Benchmark — LaTeX notation
-st.sidebar.markdown("**Parámetros fijos**")
-bench_params = [
-    (r"\alpha",        BENCH["alpha"]),
-    (r"\beta",         BENCH["beta"]),
-    (r"\delta",        BENCH["delta"]),
-    (r"\rho",          BENCH["rho"]),
-    (r"\sigma_{\varepsilon}", rf"{BENCH['sig_eps']*100:.0f}\%"),
-    (r"l_{ss}",         BENCH["l_ss"]),
-]
-for sym, val in bench_params:
-    st.sidebar.latex(rf"{sym} = {val}")
+# Benchmark 
+st.sidebar.markdown("**Benchmark fijo**")
+st.sidebar.markdown(
+    rf"$\alpha={BENCH['alpha']}$ &nbsp;&nbsp; $\beta={BENCH['beta']}$  "
+    rf"$\delta={BENCH['delta']}$ &nbsp;&nbsp; $\rho={BENCH['rho']}$  "
+    rf"$\sigma_{{\varepsilon}}={BENCH['sig_eps']*100:.0f}\%$ &nbsp;&nbsp; $l_{{ss}}={BENCH['l_ss']}$",
+    unsafe_allow_html=True,
+)
  
 st.sidebar.divider()
  
@@ -170,31 +166,31 @@ col1, col2 = st.columns(2)
  
 with col1:
     st.markdown(r"**Volatilidades relativas** $\sigma(x)/\sigma(y)$")
-    vol_rows = [
-        (r"\sigma(y)",   f"{sy*100:.2f}%"),
-        (r"\sigma(c)/\sigma(y)", f"{np.std(sim['c'],ddof=1)/sy:.3f}"),
-        (r"\sigma(k)/\sigma(y)", f"{np.std(sim['k'],ddof=1)/sy:.3f}"),
-        (r"\sigma(i)/\sigma(y)", f"{np.std(sim['i'],ddof=1)/sy:.3f}"),
-        (r"\sigma(l)/\sigma(y)", f"{np.std(sim['l'],ddof=1)/sy:.3f}"),
-    ]
-    for sym, val in vol_rows:
-        c_sym, c_val = st.columns([2, 1])
-        c_sym.latex(sym)
-        c_val.markdown(f"**{val}**")
+    import pandas as pd
+    vol_df = pd.DataFrame({
+        "Variable": ["σ(y)", "σ(c)/σ(y)", "σ(k)/σ(y)", "σ(i)/σ(y)", "σ(l)/σ(y)"],
+        "Valor": [
+            f"{sy*100:.2f}%",
+            f"{np.std(sim['c'],ddof=1)/sy:.3f}",
+            f"{np.std(sim['k'],ddof=1)/sy:.3f}",
+            f"{np.std(sim['i'],ddof=1)/sy:.3f}",
+            f"{np.std(sim['l'],ddof=1)/sy:.3f}",
+        ],
+    }).set_index("Variable")
+    st.dataframe(vol_df, use_container_width=True)
  
 with col2:
     st.markdown("**Correlación contemporánea** · lag 0")
-    corr_rows = [
-        (r"\text{corr}(y,\, c)", cc["c"][lag0]),
-        (r"\text{corr}(y,\, k)", cc["k"][lag0]),
-        (r"\text{corr}(y,\, i)", cc["i"][lag0]),
-        (r"\text{corr}(y,\, l)", cc["l"][lag0]),
-    ]
-    for sym, val in corr_rows:
-        c_sym, c_val = st.columns([2, 1])
-        c_sym.latex(sym)
-        sign = "+" if val >= 0 else ""
-        c_val.markdown(f"**{sign}{val:.4f}**")
+    corr_df = pd.DataFrame({
+        "Variable": ["corr(y, c)", "corr(y, k)", "corr(y, i)", "corr(y, l)"],
+        "Valor": [
+            f"{cc['c'][lag0]:+.4f}",
+            f"{cc['k'][lag0]:+.4f}",
+            f"{cc['i'][lag0]:+.4f}",
+            f"{cc['l'][lag0]:+.4f}",
+        ],
+    }).set_index("Variable")
+    st.dataframe(corr_df, use_container_width=True)
  
 # ── Footer ─────────────────────────────────────────────────────────────────
 st.divider()
