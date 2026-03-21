@@ -5,11 +5,11 @@ from scipy.linalg import ordqz
  
 st.set_page_config(page_title="RBC — Correlaciones cruzadas", layout="centered")
  
-# ── Benchmark fijo ─────────────────────────────────────────────────────────
+# Parámetros fijos
 BENCH = dict(alpha=0.36, beta=0.99, delta=0.025, rho=0.90,
              sig_eps=0.01, l_ss=0.33, T=50_000, seed=7)
  
-# ── Sidebar ────────────────────────────────────────────────────────────────
+# Sidebar
  
 # Benchmark 
 st.sidebar.markdown("**Benchmark fijo**")
@@ -31,7 +31,7 @@ max_lag = st.sidebar.slider("Lags máximos", 2, 8, 5)
 run_btn = st.sidebar.button("▶ Simular", type="primary", use_container_width=True)
  
  
-# ── Model ──────────────────────────────────────────────────────────────────
+# Model 
 def build_state_space(sigma, psi, bench):
     a, b, d, rho, lss = (bench["alpha"], bench["beta"], bench["delta"],
                          bench["rho"],   bench["l_ss"])
@@ -99,7 +99,7 @@ def xcorr(y, x, lag):
     return float(np.corrcoef(a, b)[0, 1])
  
  
-# ── Run ────────────────────────────────────────────────────────────────────
+# Run
 if run_btn or "sim" not in st.session_state:
     with st.spinner("Simulando…"):
         try:
@@ -122,7 +122,7 @@ NAMES  = dict(c="ln(c/c_ss)", k="ln(k/k_ss)", i="ln(i/i_ss)", l="ln(l/l_ss)")
 cc     = {v: [xcorr(lny, sim[v], lag) for lag in lags] for v in ["c","k","i","l"]}
 sy     = float(np.std(lny, ddof=1))
  
-# ── Header ─────────────────────────────────────────────────────────────────
+# Header
 st.markdown(
     f"## Correlación cruzada con ln(y/y$_{{ss}}$) "
     f"<span style='font-size:16px; color:#9ca3af; font-weight:400'>"
@@ -131,7 +131,7 @@ st.markdown(
 )
  
  
-# ── Tabs ───────────────────────────────────────────────────────────────────
+# Tabs
 for tab, keys in zip(
     st.tabs(["Todas", "Consumo", "Capital", "Inversión", "Horas"]),
     [["c","k","i","l"], ["c"], ["k"], ["i"], ["l"]],
@@ -161,7 +161,7 @@ for tab, keys in zip(
         )
         st.plotly_chart(fig, use_container_width=True)
  
-# ── Stats ──────────────────────────────────────────────────────────────────
+# Stats
 col1, col2 = st.columns(2)
  
 with col1:
@@ -192,7 +192,7 @@ with col2:
     }).set_index("Variable")
     st.dataframe(corr_df, use_container_width=True)
  
-# ── Footer ─────────────────────────────────────────────────────────────────
+# Footer
 st.divider()
 st.markdown(
     f"*σ={sig_}* → mayor aversión al riesgo suaviza el consumo. "
