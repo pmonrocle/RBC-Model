@@ -133,7 +133,7 @@ st.markdown(
  
 # Tabs
 for tab, keys in zip(
-    st.tabs(["Todas", "Consumo", "Capital", "Inversión", "Horas"]),
+    st.tabs(["Todas", "Consumo", "Capital", "Inversión", "Trabajo"]),
     [["c","k","i","l"], ["c"], ["k"], ["i"], ["l"]],
 ):
     with tab:
