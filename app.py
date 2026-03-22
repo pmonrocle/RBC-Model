@@ -12,7 +12,7 @@ BENCH = dict(alpha=0.36, beta=0.99, delta=0.025, rho=0.90,
 # Sidebar
  
 # Benchmark 
-st.sidebar.markdown("**Benchmark fijo**")
+st.sidebar.markdown("**Parámetros fijos**")
 st.sidebar.markdown(
     rf"$\alpha={BENCH['alpha']}$ &nbsp;&nbsp; $\beta={BENCH['beta']}$  "
     rf"$\delta={BENCH['delta']}$ &nbsp;&nbsp; $\rho={BENCH['rho']}$  "
