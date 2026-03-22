@@ -6,8 +6,14 @@ from scipy.linalg import ordqz
 st.set_page_config(page_title="RBC — Correlaciones cruzadas", layout="centered")
  
 # Parámetros fijos
-BENCH = dict(alpha=0.36, beta=0.99, delta=0.025, rho=0.90,
-             sig_eps=0.01, l_ss=0.33, T=50_000, seed=7)
+BENCH = dict(alpha=0.36, 
+             beta=0.99, 
+             delta=0.025, 
+             rho=0.90,
+             sig_eps=0.01, 
+             l_ss=0.33, 
+             T=50_000, 
+             seed=7)
  
 ## Sidebar ##
  
