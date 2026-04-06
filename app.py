@@ -345,7 +345,6 @@ with main_tab2:
         cc=cc_ind,
         lags=lags_ind,
         note=(
-            "Benchmark fijo (Hansen, 1985): "
             "$\\sigma=1$ y sin parámetro de curvatura del ocio."
         )
     )
