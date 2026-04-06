@@ -323,10 +323,6 @@ psi_ = st.session_state["psi"]
 # Header
 # =========================================================
 st.markdown("# RBC — Correlaciones cruzadas")
-st.markdown(
-    "Comparación entre el modelo original con **trabajo divisible** y un benchmark con "
-    "**trabajo indivisible**."
-)
 
 main_tab1, main_tab2 = st.tabs(["Trabajo divisible", "Trabajo indivisible"])
 
@@ -349,7 +345,7 @@ with main_tab2:
         cc=cc_ind,
         lags=lags_ind,
         note=(
-            "Benchmark fijo tipo Hansen: "
+            "Benchmark fijo (Hansen, 1985): "
             "$\\sigma=1$ y sin parámetro de curvatura del ocio."
         )
     )
