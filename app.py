@@ -349,11 +349,3 @@ with main_tab2:
         )
     )
 
-# =========================================================
-# Footer
-# =========================================================
-st.divider()
-st.markdown(
-    f"*Trabajo divisible:* depende de *σ={sig_:.1f}* y *ψ={psi_:.1f}*. "
-    "*Trabajo indivisible:* Parametro libre sin curvatura de ocio y con aversion relativo al riesgo, σ=1"
-)
