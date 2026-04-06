@@ -355,6 +355,5 @@ with main_tab2:
 st.divider()
 st.markdown(
     f"*Trabajo divisible:* depende de *σ={sig_:.1f}* y *ψ={psi_:.1f}*. "
-    "*Trabajo indivisible:* benchmark fijo frente a esos parámetros libres. "
-    "La mayor diferencia suele aparecer en trabajo, aunque también puede trasladarse a consumo e inversión."
+    "*Trabajo indivisible:* Parametro libre sin curvatura de ocio y con aversion relativo al riesgo, σ=1"
 )
