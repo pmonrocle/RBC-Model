@@ -33,7 +33,7 @@ st.sidebar.markdown(
  
 st.sidebar.divider()
  
-st.sidebar.markdown("**Parámetros libres (solo trabajo divisible)**")
+st.sidebar.markdown("**Parámetros libres**")
 sigma = st.sidebar.slider("σ — aversión al riesgo (consumo)", 0.5, 6.0, 2.0, 0.1)
 psi   = st.sidebar.slider("ψ — curvatura del ocio",           0.5, 5.0, 1.0, 0.1)
  
@@ -113,9 +113,6 @@ def build_state_space_indivisible(bench):
         bench["rho"]
     )
 
-    # En Hansen tipo log(c) - gamma h:
-    # - fijamos sigma = 1
-    # - desaparece la curvatura del ocio del caso divisible
     sigma = 1.0
     eta   = a
 
