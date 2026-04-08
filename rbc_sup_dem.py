@@ -29,11 +29,14 @@ bench_run = BENCH.copy()
 # =========================================================
 st.sidebar.markdown("**Parámetros fijos**")
 
-# Primero elegimos provisionalmente el shock para saber qué innovación fija mostrar
+st.sidebar.divider()
+
+st.sidebar.markdown("**Elección del shock**")
 shock_type = st.sidebar.radio(
-    "Shock a simular",
+    "Tipo de shock",
     ["Shock de oferta", "Shock de demanda"],
-    index=0
+    index=0,
+    key="shock_selector_main"
 )
 
 if shock_type == "Shock de oferta":
@@ -55,15 +58,6 @@ else:
         unsafe_allow_html=True,
     )
 
-st.sidebar.divider()
-
-st.sidebar.markdown("**Elección del shock**")
-shock_type = st.sidebar.radio(
-    "Tipo de shock",
-    ["Shock de oferta", "Shock de demanda"],
-    index=0,
-    key="shock_selector_main"
-)
 
 st.sidebar.divider()
 
@@ -86,7 +80,7 @@ else:
 
 st.sidebar.divider()
 max_lag = st.sidebar.slider("Lags máximos", 2, 8, 5)
-run_btn = st.sidebar.button("▶ Simular", type="primary", use_container_width=True)
+run_btn = st.sidebar.button("Simular", type="primary", use_container_width=True)
 
 # =========================================================
 # Construcción del sistema linealizado con dos shocks
