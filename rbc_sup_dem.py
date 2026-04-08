@@ -1,0 +1,353 @@
+import numpy as np
+import pandas as pd
+import streamlit as st
+import plotly.graph_objects as go
+from scipy.linalg import ordqz
+
+st.set_page_config(page_title="RBC — Oferta vs Demanda", layout="centered")
+
+# =========================================================
+# Parámetros fijos
+# =========================================================
+BENCH = dict(
+    alpha=0.36,
+    beta=0.99,
+    delta=0.025,
+    rho=0.90,          # persistencia shock tecnológico
+    rho_a=0.90,        # persistencia shock demanda
+    sig_eps=0.01,      # innovación tecnológica
+    sig_zeta=0.01,     # innovación demanda
+    l_ss=0.33,
+    T=50_000,
+    seed=7
+)
+
+# =========================================================
+# Sidebar
+# =========================================================
+st.sidebar.markdown("**Parámetros fijos**")
+st.sidebar.markdown(
+    rf"$\alpha={BENCH['alpha']}$ &nbsp;&nbsp; $\beta={BENCH['beta']}$ "
+    rf"$\delta={BENCH['delta']}$ &nbsp;&nbsp; $\rho_\theta={BENCH['rho']}$ "
+    rf"&nbsp;&nbsp; $\rho_a={BENCH['rho_a']}$ &nbsp;&nbsp; $l_{{ss}}={BENCH['l_ss']}$",
+    unsafe_allow_html=True,
+)
+
+st.sidebar.divider()
+st.sidebar.markdown("**Parámetros libres**")
+sigma = st.sidebar.slider("σ — aversión al riesgo (consumo)", 0.5, 6.0, 2.0, 0.1)
+psi   = st.sidebar.slider("ψ — curvatura del ocio", 0.5, 5.0, 1.0, 0.1)
+
+st.sidebar.divider()
+shock_type = st.sidebar.radio(
+    "Shock a simular",
+    ["Shock de oferta", "Shock de demanda"],
+    index=0
+)
+
+rho_a = st.sidebar.slider("ρ_a — persistencia shock de demanda", 0.50, 0.99, BENCH["rho_a"], 0.01)
+sig_zeta = st.sidebar.slider("σ_ζ — innovación shock demanda", 0.001, 0.05, BENCH["sig_zeta"], 0.001, format="%.3f")
+
+st.sidebar.divider()
+max_lag = st.sidebar.slider("Lags máximos", 2, 8, 5)
+run_btn = st.sidebar.button("▶ Simular", type="primary", use_container_width=True)
+
+bench_run = BENCH.copy()
+bench_run["rho_a"] = rho_a
+bench_run["sig_zeta"] = sig_zeta
+
+# =========================================================
+# Construcción del sistema con dos shocks
+# Estados: [k_t, theta_t, a_t]
+# =========================================================
+def _build_state_space_two_shocks_common(sigma_eff, eta, sigma_for_labor, bench):
+    a     = bench["alpha"]
+    b     = bench["beta"]
+    d     = bench["delta"]
+    rho   = bench["rho"]
+    rho_a = bench["rho_a"]
+
+    phi_        = (1.0 - b * (1.0 - d)) / sigma_eff
+    s           = (1.0 - a) / eta
+    lam         = (1.0 / a) * (1.0 / b - 1.0 + d)
+    a_theta, a_k = lam, 1.0 / b
+    a_l         = ((1.0 - a) / a) * (1.0 / b - 1.0 + d)
+    a_c         = lam - d
+    kappa_c     = 1.0 + phi_ * sigma_eff * s
+    kappa_k     = phi_ * ((a - 1.0) + a * s)
+    kappa_theta = phi_ * (1.0 + s)
+    b11         = a_k + (a * a_l) / eta
+    b12         = -a_c - (sigma_eff * a_l) / eta
+    c1          = a_theta + a_l / eta
+
+    # Cuña intertemporal del shock de demanda
+    demand_wedge = (1.0 - rho_a) / sigma_eff
+
+    G0 = np.array([
+        [1.0,       0.0, 0.0,       0.0],
+        [kappa_k,   0.0, 0.0, -kappa_c],
+        [0.0,       1.0, 0.0,       0.0],
+        [0.0,       0.0, 1.0,       0.0],
+    ])
+
+    G1 = np.array([
+        [b11,            c1,          0.0,   b12],
+        [0.0, -kappa_theta * rho, demand_wedge, -1.0],
+        [0.0,            rho,         0.0,   0.0],
+        [0.0,            0.0,       rho_a,   0.0],
+    ])
+
+    _, _, al, bt, _, Z = ordqz(G1, G0, sort="iuc")
+    if (np.abs(al / bt) < 1 - 1e-10).sum() != 3:
+        raise ValueError("Blanchard-Kahn no satisfecho en el modelo con dos shocks.")
+
+    Z11 = Z[:3, :3]
+    Z21 = Z[3:, :3]
+    phi_k, phi_theta, phi_a = (Z21 @ np.linalg.inv(Z11)).reshape(-1)
+
+    wc = np.array([phi_k, phi_theta, phi_a])
+
+    wl = np.array([a / eta, 1.0 / eta, 0.0]) - (sigma_for_labor / eta) * wc
+    wy = np.array([a, 1.0, 0.0]) + (1.0 - a) * wl
+    wi = (lam / d) * wy - ((lam - d) / d) * wc
+
+    M = np.array([
+        [b11 + b12 * phi_k, c1 + b12 * phi_theta, b12 * phi_a],
+        [0.0,               rho,                  0.0],
+        [0.0,               0.0,                rho_a],
+    ])
+
+    return M, wc, wl, wy, wi
+
+def build_state_space_divisible(sigma, psi, bench):
+    a, lss = bench["alpha"], bench["l_ss"]
+    eta = a + psi * (lss / (1.0 - lss))
+    return _build_state_space_two_shocks_common(
+        sigma_eff=sigma,
+        eta=eta,
+        sigma_for_labor=sigma,
+        bench=bench
+    )
+
+def build_state_space_indivisible(bench):
+    a = bench["alpha"]
+    return _build_state_space_two_shocks_common(
+        sigma_eff=1.0,
+        eta=a,
+        sigma_for_labor=1.0,
+        bench=bench
+    )
+
+# =========================================================
+# Simulación según shock elegido
+# =========================================================
+def simulate(M, wc, wl, wy, wi, bench, shock_type):
+    T, seed = bench["T"], bench["seed"]
+    sig_eps, sig_zeta = bench["sig_eps"], bench["sig_zeta"]
+    rng  = np.random.default_rng(seed)
+    burn = 200
+
+    eps  = np.zeros(T + burn)
+    zeta = np.zeros(T + burn)
+
+    if shock_type == "Shock de oferta":
+        eps = rng.normal(0.0, sig_eps, T + burn)
+    else:
+        zeta = rng.normal(0.0, sig_zeta, T + burn)
+
+    s = np.zeros((3, T + burn + 1))  # [k, theta, a]
+
+    for t in range(T + burn):
+        s[:, t+1] = M @ s[:, t] + np.array([0.0, eps[t], zeta[t]])
+
+    s = s[:, burn+1:]
+
+    return dict(
+        y=wy @ s,
+        c=wc @ s,
+        k=s[0],
+        i=wi @ s,
+        l=wl @ s,
+        theta=s[1],
+        a=s[2]
+    )
+
+# =========================================================
+# Correlaciones cruzadas
+# =========================================================
+def xcorr(y, x, lag):
+    n = len(y)
+    a, b = (y[:n-lag], x[lag:]) if lag >= 0 else (y[-lag:], x[:n+lag])
+    return float(np.corrcoef(a, b)[0, 1])
+
+def build_corrs(sim, max_lag):
+    lags = list(range(-max_lag, max_lag + 1))
+    lny  = sim["y"]
+    cc   = {v: [xcorr(lny, sim[v], lag) for lag in lags] for v in ["c", "k", "i", "l"]}
+    return lags, cc
+
+def build_stats(sim, cc, lags):
+    sy = float(np.std(sim["y"], ddof=1))
+    stheta = float(np.std(sim["theta"], ddof=1))
+    सा = float(np.std(sim["a"], ddof=1))
+    lag0 = lags.index(0)
+
+    vol_df = pd.DataFrame({
+        "Variable": ["σ(y)", "σ(c)/σ(y)", "σ(k)/σ(y)", "σ(i)/σ(y)", "σ(l)/σ(y)", "σ(θ)", "σ(a)"],
+        "Valor": [
+            f"{sy*100:.2f}%",
+            f"{np.std(sim['c'], ddof=1)/sy:.3f}",
+            f"{np.std(sim['k'], ddof=1)/sy:.3f}",
+            f"{np.std(sim['i'], ddof=1)/sy:.3f}",
+            f"{np.std(sim['l'], ddof=1)/sy:.3f}",
+            f"{stheta*100:.2f}%",
+            f"{सा*100:.2f}%"
+        ],
+    }).set_index("Variable")
+
+    corr_df = pd.DataFrame({
+        "Variable": ["corr(y, c)", "corr(y, k)", "corr(y, i)", "corr(y, l)", "corr(y, θ)", "corr(y, a)"],
+        "Valor": [
+            f"{cc['c'][lag0]:+.4f}",
+            f"{cc['k'][lag0]:+.4f}",
+            f"{cc['i'][lag0]:+.4f}",
+            f"{cc['l'][lag0]:+.4f}",
+            f"{np.corrcoef(sim['y'], sim['theta'])[0,1]:+.4f}",
+            f"{np.corrcoef(sim['y'], sim['a'])[0,1]:+.4f}",
+        ],
+    }).set_index("Variable")
+
+    return vol_df, corr_df
+
+COLORS = dict(c="#60a5fa", k="#fb923c", i="#4ade80", l="#f87171")
+NAMES  = dict(c="ln(c/c_ss)", k="ln(k/k_ss)", i="ln(i/i_ss)", l="ln(l/l_ss)")
+
+def draw_model_block(title, sim, cc, lags, note=""):
+    st.markdown(f"## {title}")
+    if note:
+        st.markdown(note)
+
+    for tab, keys in zip(
+        st.tabs(["Todas", "Consumo", "Capital", "Inversión", "Trabajo"]),
+        [["c","k","i","l"], ["c"], ["k"], ["i"], ["l"]],
+    ):
+        with tab:
+            fig = go.Figure()
+            fig.add_hline(y=0, line_color="rgba(150,150,150,0.3)", line_width=1)
+            fig.add_vline(x=0, line_color="rgba(150,150,150,0.3)", line_width=1, line_dash="dot")
+
+            for v in keys:
+                fig.add_trace(go.Scatter(
+                    x=lags, y=cc[v], name=NAMES[v],
+                    mode="lines+markers",
+                    line=dict(color=COLORS[v], width=2.5),
+                    marker=dict(size=7, color=COLORS[v]),
+                    hovertemplate="lag %{x}: %{y:.4f}<extra>" + NAMES[v] + "</extra>",
+                ))
+
+            fig.update_layout(
+                xaxis=dict(
+                    title="Lag k  ·  corr(y_t , x_{t+k})",
+                    tickmode="array", tickvals=lags,
+                    gridcolor="rgba(200,200,200,0.08)"
+                ),
+                yaxis=dict(
+                    title="Correlación", range=[-0.25, 1.05],
+                    gridcolor="rgba(200,200,200,0.08)"
+                ),
+                legend=dict(orientation="h", y=1.12, x=0),
+                margin=dict(l=50, r=20, t=40, b=50),
+                height=380,
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+    vol_df, corr_df = build_stats(sim, cc, lags)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(r"**Volatilidades**")
+        st.dataframe(vol_df, use_container_width=True)
+
+    with col2:
+        st.markdown("**Correlación contemporánea** · lag 0")
+        st.dataframe(corr_df, use_container_width=True)
+
+# =========================================================
+# Run
+# =========================================================
+if run_btn or "sim_div" not in st.session_state:
+    with st.spinner("Simulando…"):
+        try:
+            # Divisible
+            M_div, wc_div, wl_div, wy_div, wi_div = build_state_space_divisible(sigma, psi, bench_run)
+            sim_div = simulate(M_div, wc_div, wl_div, wy_div, wi_div, bench_run, shock_type)
+            lags_div, cc_div = build_corrs(sim_div, max_lag)
+
+            # Indivisible
+            M_ind, wc_ind, wl_ind, wy_ind, wi_ind = build_state_space_indivisible(bench_run)
+            sim_ind = simulate(M_ind, wc_ind, wl_ind, wy_ind, wi_ind, bench_run, shock_type)
+            lags_ind, cc_ind = build_corrs(sim_ind, max_lag)
+
+            st.session_state.update(
+                sim_div=sim_div,
+                lags_div=lags_div,
+                cc_div=cc_div,
+                sim_ind=sim_ind,
+                lags_ind=lags_ind,
+                cc_ind=cc_ind,
+                sigma=sigma,
+                psi=psi,
+                shock_type=shock_type,
+                rho_a=rho_a,
+                sig_zeta=sig_zeta
+            )
+        except Exception as e:
+            st.error(f"❌ {e}")
+            st.stop()
+
+sim_div  = st.session_state["sim_div"]
+lags_div = st.session_state["lags_div"]
+cc_div   = st.session_state["cc_div"]
+
+sim_ind  = st.session_state["sim_ind"]
+lags_ind = st.session_state["lags_ind"]
+cc_ind   = st.session_state["cc_ind"]
+
+sig_ = st.session_state["sigma"]
+psi_ = st.session_state["psi"]
+shock_type_ = st.session_state["shock_type"]
+rho_a_ = st.session_state["rho_a"]
+sig_zeta_ = st.session_state["sig_zeta"]
+
+# =========================================================
+# Header
+# =========================================================
+st.markdown("# RBC — Shock de oferta vs shock de demanda")
+st.markdown(f"**Shock actualmente simulado:** {shock_type_}")
+
+main_tab1, main_tab2 = st.tabs(["Trabajo divisible", "Trabajo indivisible"])
+
+with main_tab1:
+    draw_model_block(
+        title="Trabajo divisible",
+        sim=sim_div,
+        cc=cc_div,
+        lags=lags_div,
+        note=(
+            f"Parámetros libres actuales: "
+            f"$\\sigma={sig_:.1f}$, $\\psi={psi_:.1f}$, "
+            f"$\\rho_a={rho_a_:.2f}$, $\\sigma_\\zeta={sig_zeta_:.3f}$"
+        )
+    )
+
+with main_tab2:
+    draw_model_block(
+        title="Trabajo indivisible",
+        sim=sim_ind,
+        cc=cc_ind,
+        lags=lags_ind,
+        note=(
+            f"$\\sigma=1$ y sin parámetro de curvatura del ocio. "
+            f"Shock actual: {shock_type_}."
+        )
+    )
