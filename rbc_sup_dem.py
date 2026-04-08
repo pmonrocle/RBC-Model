@@ -15,8 +15,8 @@ BENCH = dict(
     delta=0.025,
     rho=0.90,          # persistencia shock tecnológico
     rho_a=0.90,        # persistencia shock de demanda
-    sig_eps=0.01,      # innovación shock tecnológico (fija)
-    sig_zeta=0.01,     # innovación shock demanda (fija)
+    sig_eps=0.01,      # innovación shock tecnológico 
+    sig_zeta=0.01,     # innovación shock demanda 
     l_ss=0.33,
     T=50_000,
     seed=7
@@ -28,16 +28,6 @@ bench_run = BENCH.copy()
 # Sidebar
 # =========================================================
 st.sidebar.markdown("**Parámetros fijos**")
-
-st.sidebar.divider()
-
-st.sidebar.markdown("**Elección del shock**")
-shock_type = st.sidebar.radio(
-    "Tipo de shock",
-    ["Shock de oferta", "Shock de demanda"],
-    index=0,
-    key="shock_selector_main"
-)
 
 if shock_type == "Shock de oferta":
     st.sidebar.markdown(
@@ -57,6 +47,18 @@ else:
         rf"$l_{{ss}}={BENCH['l_ss']}$",
         unsafe_allow_html=True,
     )
+
+
+
+st.sidebar.divider()
+
+st.sidebar.markdown("**Elección del shock**")
+shock_type = st.sidebar.radio(
+    "Tipo de shock",
+    ["Shock de oferta", "Shock de demanda"],
+    index=0,
+    key="shock_selector_main"
+)
 
 
 st.sidebar.divider()
