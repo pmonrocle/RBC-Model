@@ -3,9 +3,9 @@ import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
 from scipy.linalg import ordqz
- 
+
 st.set_page_config(page_title="RBC — Correlaciones cruzadas", layout="centered")
- 
+
 # =========================================================
 # Parámetros fijos
 # =========================================================
@@ -19,7 +19,7 @@ BENCH = dict(
     T=50_000,
     seed=7
 )
- 
+
 # =========================================================
 # Sidebar
 # =========================================================
@@ -30,18 +30,17 @@ st.sidebar.markdown(
     rf"$\sigma_{{\varepsilon}}={BENCH['sig_eps']*100:.0f}\%$ &nbsp;&nbsp; $l_{{ss}}={BENCH['l_ss']}$",
     unsafe_allow_html=True,
 )
- 
+
 st.sidebar.divider()
- 
+
 st.sidebar.markdown("**Parámetros libres**")
 sigma = st.sidebar.slider("σ — aversión al riesgo (consumo)", 0.5, 6.0, 2.0, 0.1)
-psi   = st.sidebar.slider("ψ — curvatura del ocio",           0.5, 5.0, 1.0, 0.1)
- 
+psi   = st.sidebar.slider("ψ — curvatura del ocio", 0.5, 5.0, 1.0, 0.1)
+
 st.sidebar.divider()
 max_lag = st.sidebar.slider("Lags máximos", 2, 8, 5)
 run_btn = st.sidebar.button("▶ Simular", type="primary", use_container_width=True)
- 
- 
+
 # =========================================================
 # Modelo original: trabajo divisible
 # =========================================================
@@ -53,7 +52,7 @@ def build_state_space_divisible(sigma, psi, bench):
         bench["rho"],
         bench["l_ss"]
     )
- 
+
     eta         = a + psi * (lss / (1.0 - lss))
     phi_        = (1.0 - b * (1.0 - d)) / sigma
     s           = (1.0 - a) / eta
@@ -67,28 +66,28 @@ def build_state_space_divisible(sigma, psi, bench):
     b11 = a_k + (a * a_l) / eta
     b12 = -a_c - (sigma * a_l) / eta
     c1  = a_theta + a_l / eta
- 
+
     A = np.array([[1.,       0.      ], [kappa_k, -kappa_c]])
     B = np.array([[b11,      b12     ], [0.,      -1.     ]])
     C = np.array([[c1], [-kappa_theta * rho]])
- 
+
     Ar = np.zeros((3, 3)); Br = np.zeros((3, 3))
     Ar[0,1]=A[0,0]; Ar[0,0]=A[0,1]; Br[0,1]=B[0,0]; Br[0,0]=B[0,1]; Br[0,2]=C[0,0]
     Ar[1,1]=A[1,0]; Ar[1,0]=A[1,1]; Br[1,1]=B[1,0]; Br[1,0]=B[1,1]; Br[1,2]=C[1,0]
     Ar[2,2]=1.0;    Br[2,2]=rho
- 
+
     p = [1, 2, 0]
     _, _, al, bt, _, Z = ordqz(Br[np.ix_(p,p)], Ar[np.ix_(p,p)], sort="iuc")
     if (np.abs(al / bt) < 1 - 1e-10).sum() != 2:
         raise ValueError("Blanchard-Kahn no satisfecho. Ajusta σ o ψ.")
- 
+
     Z11 = Z[:2, :2]
     Z21 = Z[2:, :2]
     phi_k, phi_theta = (Z21 @ np.linalg.inv(Z11)).reshape(-1)
- 
+
     w_lk  = (a   - sigma * phi_k)     / eta
     w_lth = (1.0 - sigma * phi_theta) / eta
- 
+
     M  = np.array([
         [a_k + a_l*w_lk  - a_c*phi_k,
          a_theta + a_l*w_lth - a_c*phi_theta],
@@ -98,7 +97,7 @@ def build_state_space_divisible(sigma, psi, bench):
     wl = np.array([w_lk,    w_lth   ])
     wy = np.array([a,       1.0     ]) + (1.0 - a) * wl
     wi = (lam / d) * wy - ((lam - d) / d) * wc
- 
+
     return M, wc, wl, wy, wi
 
 
@@ -161,8 +160,7 @@ def build_state_space_indivisible(bench):
     wi = (lam / d) * wy - ((lam - d) / d) * wc
 
     return M, wc, wl, wy, wi
- 
- 
+
 # =========================================================
 # Simulación
 # =========================================================
@@ -172,56 +170,64 @@ def simulate(M, wc, wl, wy, wi, bench):
     burn = 200
     eps  = rng.normal(0.0, sig_eps, T + burn)
     s    = np.zeros((2, T + burn + 1))
+
     for t in range(T + burn):
         s[:, t+1] = M @ s[:, t] + np.array([0.0, eps[t]])
+
     s = s[:, burn+1:]
-    return dict(y=wy @ s, c=wc @ s, k=s[0], i=wi @ s, l=wl @ s)
- 
- 
+
+    return dict(
+        y=wy @ s,
+        c=wc @ s,
+        k=s[0],
+        i=wi @ s,
+        l=wl @ s,
+        theta=s[1]
+    )
+
 def xcorr(y, x, lag):
     n = len(y)
     a, b = (y[:n-lag], x[lag:]) if lag >= 0 else (y[-lag:], x[:n+lag])
     return float(np.corrcoef(a, b)[0, 1])
- 
- 
+
 def build_corrs(sim, max_lag):
     lags = list(range(-max_lag, max_lag + 1))
     lny  = sim["y"]
     cc   = {v: [xcorr(lny, sim[v], lag) for lag in lags] for v in ["c", "k", "i", "l"]}
     return lags, cc
 
-
 def build_stats(sim, cc, lags):
     sy = float(np.std(sim["y"], ddof=1))
+    stheta = float(np.std(sim["theta"], ddof=1))
     lag0 = lags.index(0)
 
     vol_df = pd.DataFrame({
-        "Variable": ["σ(y)", "σ(c)/σ(y)", "σ(k)/σ(y)", "σ(i)/σ(y)", "σ(l)/σ(y)"],
+        "Variable": ["σ(y)", "σ(c)/σ(y)", "σ(k)/σ(y)", "σ(i)/σ(y)", "σ(l)/σ(y)", "σ(θ)"],
         "Valor": [
             f"{sy*100:.2f}%",
             f"{np.std(sim['c'], ddof=1)/sy:.3f}",
             f"{np.std(sim['k'], ddof=1)/sy:.3f}",
             f"{np.std(sim['i'], ddof=1)/sy:.3f}",
             f"{np.std(sim['l'], ddof=1)/sy:.3f}",
+            f"{stheta*100:.2f}%"
         ],
     }).set_index("Variable")
 
     corr_df = pd.DataFrame({
-        "Variable": ["corr(y, c)", "corr(y, k)", "corr(y, i)", "corr(y, l)"],
+        "Variable": ["corr(y, c)", "corr(y, k)", "corr(y, i)", "corr(y, l)", "corr(y, θ)"],
         "Valor": [
             f"{cc['c'][lag0]:+.4f}",
             f"{cc['k'][lag0]:+.4f}",
             f"{cc['i'][lag0]:+.4f}",
             f"{cc['l'][lag0]:+.4f}",
+            f"{np.corrcoef(sim['y'], sim['theta'])[0,1]:+.4f}",
         ],
     }).set_index("Variable")
 
     return vol_df, corr_df
 
-
 COLORS = dict(c="#60a5fa", k="#fb923c", i="#4ade80", l="#f87171")
 NAMES  = dict(c="ln(c/c_ss)", k="ln(k/k_ss)", i="ln(i/i_ss)", l="ln(l/l_ss)")
-
 
 def draw_model_block(title, sim, cc, lags, note=""):
     st.markdown(f"## {title}")
@@ -266,14 +272,13 @@ def draw_model_block(title, sim, cc, lags, note=""):
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown(r"**Volatilidades relativas** $\sigma(x)/\sigma(y)$")
+        st.markdown(r"**Volatilidades**")
         st.dataframe(vol_df, use_container_width=True)
 
     with col2:
         st.markdown("**Correlación contemporánea** · lag 0")
         st.dataframe(corr_df, use_container_width=True)
- 
- 
+
 # =========================================================
 # Run
 # =========================================================
@@ -303,8 +308,7 @@ if run_btn or "sim_div" not in st.session_state:
         except Exception as e:
             st.error(f"❌ {e}")
             st.stop()
- 
-# Recuperar
+
 sim_div  = st.session_state["sim_div"]
 lags_div = st.session_state["lags_div"]
 cc_div   = st.session_state["cc_div"]
@@ -329,10 +333,7 @@ with main_tab1:
         sim=sim_div,
         cc=cc_div,
         lags=lags_div,
-        note=(
-            f"Parámetros libres actuales: "
-            f"$\\sigma={sig_:.1f}$, $\\psi={psi_:.1f}$"
-        )
+        note=f"Parámetros libres actuales: $\\sigma={sig_:.1f}$, $\\psi={psi_:.1f}$"
     )
 
 with main_tab2:
@@ -341,8 +342,5 @@ with main_tab2:
         sim=sim_ind,
         cc=cc_ind,
         lags=lags_ind,
-        note=(
-            "$\\sigma=1$ y sin parámetro de curvatura del ocio."
-        )
+        note="$\\sigma=1$ y sin parámetro de curvatura del ocio."
     )
-
