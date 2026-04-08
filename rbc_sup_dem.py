@@ -372,19 +372,6 @@ rho_a_ = st.session_state["rho_a"]
 # Header
 # =========================================================
 st.markdown("# RBC — Shock de oferta vs shock de demanda")
-st.markdown(f"**Shock actualmente simulado:** {shock_type_}")
-
-if shock_type_ == "Shock de oferta":
-    st.markdown(
-        rf"Parámetro activo: $\rho_\theta = {rho_:.2f}$ "
-        rf"con innovación fija $\sigma_{{\varepsilon}} = {BENCH['sig_eps']:.3f}$."
-    )
-else:
-    st.markdown(
-        rf"Parámetro activo: $\rho_a = {rho_a_:.2f}$ "
-        rf"con innovación fija $\sigma_{{\zeta}} = {BENCH['sig_zeta']:.3f}$."
-    )
-
 main_tab1, main_tab2 = st.tabs(["Trabajo divisible", "Trabajo indivisible"])
 
 with main_tab1:
