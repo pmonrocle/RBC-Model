@@ -4,7 +4,7 @@ import streamlit as st
 import plotly.graph_objects as go
 from scipy.linalg import ordqz
 
-st.set_page_config(page_title="RBC — Shock de oferta vs shock de demanda", layout="centered")
+st.set_page_config(page_title="RBC — Correlaciones cruzadas", layout="centered")
 
 # =========================================================
 # Parámetros base
@@ -27,12 +27,9 @@ bench_run = BENCH.copy()
 # =========================================================
 # Sidebar
 # =========================================================
-st.sidebar.markdown("**Parámetros libres**")
-sigma = st.sidebar.slider("σ — aversión al riesgo (consumo)", 0.5, 6.0, 2.0, 0.1)
-psi   = st.sidebar.slider("ψ — curvatura del ocio", 0.5, 5.0, 1.0, 0.1)
+st.sidebar.markdown("**Parámetros fijos**")
 
-st.sidebar.divider()
-
+# Primero elegimos provisionalmente el shock para saber qué innovación fija mostrar
 shock_type = st.sidebar.radio(
     "Shock a simular",
     ["Shock de oferta", "Shock de demanda"],
@@ -40,14 +37,6 @@ shock_type = st.sidebar.radio(
 )
 
 if shock_type == "Shock de oferta":
-    rho_theta = st.sidebar.slider(
-        "ρ_θ — persistencia shock tecnológico",
-        0.50, 0.99, BENCH["rho"], 0.01
-    )
-    bench_run["rho"] = rho_theta
-
-    st.sidebar.divider()
-    st.sidebar.markdown("**Parámetros fijos**")
     st.sidebar.markdown(
         rf"$\alpha={BENCH['alpha']}$ &nbsp;&nbsp; "
         rf"$\beta={BENCH['beta']}$ &nbsp;&nbsp; "
@@ -56,16 +45,7 @@ if shock_type == "Shock de oferta":
         rf"$l_{{ss}}={BENCH['l_ss']}$",
         unsafe_allow_html=True,
     )
-
 else:
-    rho_a = st.sidebar.slider(
-        "ρ_a — persistencia shock de demanda",
-        0.50, 0.99, BENCH["rho_a"], 0.01
-    )
-    bench_run["rho_a"] = rho_a
-
-    st.sidebar.divider()
-    st.sidebar.markdown("**Parámetros fijos**")
     st.sidebar.markdown(
         rf"$\alpha={BENCH['alpha']}$ &nbsp;&nbsp; "
         rf"$\beta={BENCH['beta']}$ &nbsp;&nbsp; "
@@ -74,6 +54,35 @@ else:
         rf"$l_{{ss}}={BENCH['l_ss']}$",
         unsafe_allow_html=True,
     )
+
+st.sidebar.divider()
+
+st.sidebar.markdown("**Elección del shock**")
+shock_type = st.sidebar.radio(
+    "Tipo de shock",
+    ["Shock de oferta", "Shock de demanda"],
+    index=0,
+    key="shock_selector_main"
+)
+
+st.sidebar.divider()
+
+st.sidebar.markdown("**Parámetros libres**")
+sigma = st.sidebar.slider("σ — aversión al riesgo (consumo)", 0.5, 6.0, 2.0, 0.1)
+psi   = st.sidebar.slider("ψ — curvatura del ocio", 0.5, 5.0, 1.0, 0.1)
+
+if shock_type == "Shock de oferta":
+    rho_theta = st.sidebar.slider(
+        "ρ_θ — persistencia shock tecnológico",
+        0.50, 0.99, BENCH["rho"], 0.01
+    )
+    bench_run["rho"] = rho_theta
+else:
+    rho_a = st.sidebar.slider(
+        "ρ_a — persistencia shock de demanda",
+        0.50, 0.99, BENCH["rho_a"], 0.01
+    )
+    bench_run["rho_a"] = rho_a
 
 st.sidebar.divider()
 max_lag = st.sidebar.slider("Lags máximos", 2, 8, 5)
@@ -350,9 +359,7 @@ if run_btn or "sim_div" not in st.session_state:
                 cc_ind=cc_ind,
                 sigma=sigma,
                 psi=psi,
-                shock_type=shock_type,
-                rho=bench_run["rho"],
-                rho_a=bench_run["rho_a"]
+                shock_type=shock_type
             )
 
         except Exception as e:
@@ -372,26 +379,11 @@ cc_ind   = st.session_state["cc_ind"]
 
 sig_ = st.session_state["sigma"]
 psi_ = st.session_state["psi"]
-shock_type_ = st.session_state["shock_type"]
-rho_ = st.session_state["rho"]
-rho_a_ = st.session_state["rho_a"]
 
 # =========================================================
 # Header
 # =========================================================
-st.markdown("# RBC — Shock de oferta vs shock de demanda")
-st.markdown(f"**Shock actualmente simulado:** {shock_type_}")
-
-if shock_type_ == "Shock de oferta":
-    st.markdown(
-        rf"Parámetro activo: $\rho_\theta = {rho_:.2f}$ "
-        rf"con innovación fija $\sigma_{{\varepsilon}} = {BENCH['sig_eps']:.3f}$."
-    )
-else:
-    st.markdown(
-        rf"Parámetro activo: $\rho_a = {rho_a_:.2f}$ "
-        rf"con innovación fija $\sigma_{{\zeta}} = {BENCH['sig_zeta']:.3f}$."
-    )
+st.markdown("# RBC — Correlaciones cruzadas")
 
 main_tab1, main_tab2 = st.tabs(["Trabajo divisible", "Trabajo indivisible"])
 
