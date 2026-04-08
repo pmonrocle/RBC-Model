@@ -4,7 +4,7 @@ import streamlit as st
 import plotly.graph_objects as go
 from scipy.linalg import ordqz
 
-st.set_page_config(page_title="RBC — Correlaciones cruzadas", layout="centered")
+st.set_page_config(page_title="RBC — Shock de oferta vs shock de demanda", layout="centered")
 
 # =========================================================
 # Parámetros base
@@ -15,8 +15,8 @@ BENCH = dict(
     delta=0.025,
     rho=0.90,          # persistencia shock tecnológico
     rho_a=0.90,        # persistencia shock de demanda
-    sig_eps=0.01,      # innovación shock tecnológico 
-    sig_zeta=0.01,     # innovación shock demanda 
+    sig_eps=0.01,      # innovación shock tecnológico (fija)
+    sig_zeta=0.01,     # innovación shock demanda (fija)
     l_ss=0.33,
     T=50_000,
     seed=7
@@ -28,27 +28,15 @@ bench_run = BENCH.copy()
 # Sidebar
 # =========================================================
 st.sidebar.markdown("**Parámetros fijos**")
-
-if shock_type == "Shock de oferta":
-    st.sidebar.markdown(
-        rf"$\alpha={BENCH['alpha']}$ &nbsp;&nbsp; "
-        rf"$\beta={BENCH['beta']}$ &nbsp;&nbsp; "
-        rf"$\delta={BENCH['delta']}$ &nbsp;&nbsp; "
-        rf"$\sigma_{{\varepsilon}}={BENCH['sig_eps']*100:.1f}\%$ &nbsp;&nbsp; "
-        rf"$l_{{ss}}={BENCH['l_ss']}$",
-        unsafe_allow_html=True,
-    )
-else:
-    st.sidebar.markdown(
-        rf"$\alpha={BENCH['alpha']}$ &nbsp;&nbsp; "
-        rf"$\beta={BENCH['beta']}$ &nbsp;&nbsp; "
-        rf"$\delta={BENCH['delta']}$ &nbsp;&nbsp; "
-        rf"$\sigma_{{\zeta}}={BENCH['sig_zeta']*100:.1f}\%$ &nbsp;&nbsp; "
-        rf"$l_{{ss}}={BENCH['l_ss']}$",
-        unsafe_allow_html=True,
-    )
-
-
+st.sidebar.markdown(
+    rf"$\alpha={BENCH['alpha']}$ &nbsp;&nbsp; "
+    rf"$\beta={BENCH['beta']}$ &nbsp;&nbsp; "
+    rf"$\delta={BENCH['delta']}$ &nbsp;&nbsp; "
+    rf"$\sigma_{{\varepsilon}}={BENCH['sig_eps']*100:.1f}\%$ &nbsp;&nbsp; "
+    rf"$\sigma_{{\zeta}}={BENCH['sig_zeta']*100:.1f}\%$ &nbsp;&nbsp; "
+    rf"$l_{{ss}}={BENCH['l_ss']}$",
+    unsafe_allow_html=True,
+)
 
 st.sidebar.divider()
 
@@ -56,10 +44,8 @@ st.sidebar.markdown("**Elección del shock**")
 shock_type = st.sidebar.radio(
     "Tipo de shock",
     ["Shock de oferta", "Shock de demanda"],
-    index=0,
-    key="shock_selector_main"
+    index=0
 )
-
 
 st.sidebar.divider()
 
@@ -82,7 +68,7 @@ else:
 
 st.sidebar.divider()
 max_lag = st.sidebar.slider("Lags máximos", 2, 8, 5)
-run_btn = st.sidebar.button("Simular", type="primary", use_container_width=True)
+run_btn = st.sidebar.button("▶ Simular", type="primary", use_container_width=True)
 
 # =========================================================
 # Construcción del sistema linealizado con dos shocks
@@ -354,8 +340,7 @@ if run_btn or "sim_div" not in st.session_state:
                 lags_ind=lags_ind,
                 cc_ind=cc_ind,
                 sigma=sigma,
-                psi=psi,
-                shock_type=shock_type
+                psi=psi
             )
 
         except Exception as e:
