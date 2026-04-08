@@ -4,7 +4,7 @@ import streamlit as st
 import plotly.graph_objects as go
 from scipy.linalg import ordqz
 
-st.set_page_config(page_title="RBC — Shock de oferta vs shock de demanda", layout="centered")
+st.set_page_config(page_title="RBC — Correlaciones cruzadas", layout="centered")
 
 # =========================================================
 # Parámetros fijos
