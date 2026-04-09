@@ -4,7 +4,7 @@ import streamlit as st
 import plotly.graph_objects as go
 from scipy.linalg import ordqz
 
-st.set_page_config(page_title="RBC — correlaciones cruzadas", layout="centered")
+st.set_page_config(page_title="RBC — Correlaciones cruzadas", layout="centered")
 
 # =========================================================
 # Parámetros fijos
