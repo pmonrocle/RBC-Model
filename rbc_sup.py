@@ -6,9 +6,7 @@ from scipy.linalg import ordqz
 
 st.set_page_config(page_title="RBC — Correlaciones cruzadas", layout="centered")
 
-# =========================================================
 # Parámetros fijos
-# =========================================================
 BENCH = dict(
     alpha=0.36,
     beta=0.99,
@@ -20,9 +18,8 @@ BENCH = dict(
     seed=7
 )
 
-# =========================================================
+
 # Sidebar
-# =========================================================
 st.sidebar.markdown("**Parámetros fijos**")
 st.sidebar.markdown(
     rf"$\alpha={BENCH['alpha']}$ &nbsp;&nbsp; $\beta={BENCH['beta']}$  "
@@ -41,9 +38,7 @@ st.sidebar.divider()
 max_lag = st.sidebar.slider("Lags máximos", 2, 8, 5)
 run_btn = st.sidebar.button("▶ Simular", type="primary", use_container_width=True)
 
-# =========================================================
-# Modelo original: trabajo divisible
-# =========================================================
+# Modelo con trabajo divisible
 def build_state_space_divisible(sigma, psi, bench):
     a, b, d, rho, lss = (
         bench["alpha"],
@@ -101,9 +96,8 @@ def build_state_space_divisible(sigma, psi, bench):
     return M, wc, wl, wy, wi
 
 
-# =========================================================
-# Benchmark: trabajo indivisible (tipo Hansen)
-# =========================================================
+
+# Modelo con trabajo indivisible (Hansen, 1985)
 def build_state_space_indivisible(bench):
     a, b, d, rho = (
         bench["alpha"],
@@ -161,9 +155,8 @@ def build_state_space_indivisible(bench):
 
     return M, wc, wl, wy, wi
 
-# =========================================================
+
 # Simulación
-# =========================================================
 def simulate(M, wc, wl, wy, wi, bench):
     sig_eps, T, seed = bench["sig_eps"], bench["T"], bench["seed"]
     rng  = np.random.default_rng(seed)
@@ -279,9 +272,8 @@ def draw_model_block(title, sim, cc, lags, note=""):
         st.markdown("**Correlación contemporánea** · lag 0")
         st.dataframe(corr_df, use_container_width=True)
 
-# =========================================================
+
 # Run
-# =========================================================
 if run_btn or "sim_div" not in st.session_state:
     with st.spinner("Simulando…"):
         try:
@@ -320,9 +312,8 @@ cc_ind   = st.session_state["cc_ind"]
 sig_ = st.session_state["sigma"]
 psi_ = st.session_state["psi"]
 
-# =========================================================
+
 # Header
-# =========================================================
 st.markdown("# RBC — Correlaciones cruzadas")
 
 main_tab1, main_tab2 = st.tabs(["Trabajo divisible", "Trabajo indivisible"])
