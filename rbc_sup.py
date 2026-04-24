@@ -8,12 +8,12 @@ st.set_page_config(page_title="RBC — Correlaciones cruzadas", layout="centered
 
 # Parámetros fijos
 BENCH = dict(
-    alpha=0.36,
-    beta=0.99,
-    delta=0.025,
-    rho=0.90,
-    sig_eps=0.01,
-    l_ss=0.33,
+    alpha=0.43,
+    beta=0.997,
+    delta=0.011,
+    rho=0.89,
+    sig_eps=0.005,
+    l_ss=0.28,
     T=50_000,
     seed=7
 )
