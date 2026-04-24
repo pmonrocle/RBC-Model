@@ -3,6 +3,7 @@ import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
 from scipy.linalg import ordqz
+from statsmodels.tsa.filters.hp_filter import hpfilter
 
 st.set_page_config(page_title="RBC — Correlaciones cruzadas", layout="centered")
 
@@ -18,13 +19,15 @@ BENCH = dict(
     seed=7
 )
 
+HP_LAMBDA = 1600  
+
 
 # Sidebar
 st.sidebar.markdown("**Parámetros fijos**")
 st.sidebar.markdown(
     rf"$\alpha={BENCH['alpha']}$ &nbsp;&nbsp; $\beta={BENCH['beta']}$  "
     rf"$\delta={BENCH['delta']}$ &nbsp;&nbsp; $\rho={BENCH['rho']}$  "
-    rf"$\sigma_{{\varepsilon}}={BENCH['sig_eps']*100:.0f}\%$ &nbsp;&nbsp; $l_{{ss}}={BENCH['l_ss']}$",
+    rf"$\sigma_{{\varepsilon}}={BENCH['sig_eps']*100:.1f}\%$ &nbsp;&nbsp; $l_{{ss}}={BENCH['l_ss']}$",
     unsafe_allow_html=True,
 )
 
@@ -178,6 +181,17 @@ def simulate(M, wc, wl, wy, wi, bench):
         theta=s[1]
     )
 
+
+# Filtro Hodrick-Prescott sobre todas las series
+def apply_hp(sim, lamb=HP_LAMBDA):
+    """Devuelve un nuevo diccionario con el componente cíclico HP de cada serie."""
+    out = {}
+    for key, series in sim.items():
+        cycle, _trend = hpfilter(series, lamb=lamb)
+        out[key] = np.asarray(cycle)
+    return out
+
+
 def xcorr(y, x, lag):
     n = len(y)
     a, b = (y[:n-lag], x[lag:]) if lag >= 0 else (y[-lag:], x[:n+lag])
@@ -279,12 +293,14 @@ if run_btn or "sim_div" not in st.session_state:
         try:
             # Divisible
             M_div, wc_div, wl_div, wy_div, wi_div = build_state_space_divisible(sigma, psi, BENCH)
-            sim_div = simulate(M_div, wc_div, wl_div, wy_div, wi_div, BENCH)
+            sim_div_raw = simulate(M_div, wc_div, wl_div, wy_div, wi_div, BENCH)
+            sim_div = apply_hp(sim_div_raw)                  # ← filtrado HP
             lags_div, cc_div = build_corrs(sim_div, max_lag)
 
             # Indivisible
             M_ind, wc_ind, wl_ind, wy_ind, wi_ind = build_state_space_indivisible(BENCH)
-            sim_ind = simulate(M_ind, wc_ind, wl_ind, wy_ind, wi_ind, BENCH)
+            sim_ind_raw = simulate(M_ind, wc_ind, wl_ind, wy_ind, wi_ind, BENCH)
+            sim_ind = apply_hp(sim_ind_raw)                  # ← filtrado HP
             lags_ind, cc_ind = build_corrs(sim_ind, max_lag)
 
             st.session_state.update(
@@ -315,6 +331,7 @@ psi_ = st.session_state["psi"]
 
 # Header
 st.markdown("# RBC — Correlaciones cruzadas")
+st.caption(f"Componente cíclico extraído con filtro Hodrick-Prescott (λ = {HP_LAMBDA}).")
 
 main_tab1, main_tab2 = st.tabs(["Trabajo divisible", "Trabajo indivisible"])
 
