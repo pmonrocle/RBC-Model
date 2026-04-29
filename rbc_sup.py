@@ -39,7 +39,7 @@ psi   = st.sidebar.slider("ψ — curvatura del ocio", 0.5, 5.0, 1.0, 0.1)
 
 st.sidebar.divider()
 max_lag = st.sidebar.slider("Lags máximos", 2, 8, 5)
-run_btn = st.sidebar.button("▶ Simular", type="primary", use_container_width=True)
+run_btn = st.sidebar.button("Simular", type="primary", use_container_width=True)
 
 # Modelo con trabajo divisible
 def build_state_space_divisible(sigma, psi, bench):
