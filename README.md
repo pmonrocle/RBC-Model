@@ -11,10 +11,6 @@ Esta aplicación nace como material computacional complementario del artículo:
 
 La herramienta permite trasladar parte de la discusión teórica del artículo a un entorno interactivo, de forma que el lector pueda modificar parámetros, simular el modelo y observar cómo cambian las propiedades cíclicas del producto, el consumo, la inversión, el capital y el trabajo.
 
-El artículo en PDF se encuentra disponible dentro del repositorio:
-
-[Descargar paper](paper/RBC (I).pdf)
-
 ## Aplicación en línea
 
 La aplicación puede ejecutarse en Streamlit Community Cloud:
@@ -188,8 +184,8 @@ La comparación entre ambas especificaciones permite evaluar si el trabajo indiv
 Para ejecutar la aplicación en local, primero clona el repositorio:
 
 ```bash
-git clone https://github.com/TU-USUARIO/NOMBRE-DEL-REPOSITORIO.git
-cd NOMBRE-DEL-REPOSITORIO
+git clone https://github.com/pmonrocle/RBC-Model as rbc1
+cd rbc1
 ```
 
 Después instala las dependencias:
@@ -232,7 +228,7 @@ RBC-Cross-Correlations/
 ├── .gitignore
 │
 └── paper/
-    └── modelo-neoclasico-ciclos-economicos-rbc.pdf
+    └── RBC_(I).pdf
 ```
 
 ## Interpretación económica y estadística
