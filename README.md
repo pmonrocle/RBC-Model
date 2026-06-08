@@ -114,15 +114,15 @@ El estado del sistema está formado por el capital y el shock tecnológico:
 ```math
 s_t =
 \begin{pmatrix}
-k_t \\
-\theta_t
+\tilde{k}_t \\
+\tilde{\theta}_t
 \end{pmatrix}
 ```
 
 El shock tecnológico sigue un proceso autorregresivo de primer orden:
 
 ```math
-\tilde{\theta}_{t+1} = \rho \tilde{\theta}_t + \varepsilon_{t+1}
+\theta_{t+1} = \rho \theta_t + \varepsilon_{t+1}
 ```
 
 donde:
