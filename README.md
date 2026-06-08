@@ -122,7 +122,7 @@ s_t =
 El shock tecnológico sigue un proceso autorregresivo de primer orden:
 
 ```math
-\theta_{t+1} = \rho \theta_t + \varepsilon_{t+1}
+\tilde{\theta}_{t+1} = \rho \tilde{\theta}_t + \varepsilon_{t+1}
 ```
 
 donde:
