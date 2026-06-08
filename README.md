@@ -13,7 +13,7 @@ La herramienta permite trasladar parte de la discusión teórica del artículo a
 
 El artículo en PDF se encuentra disponible dentro del repositorio:
 
-[Descargar paper](paper/modelo-neoclasico-ciclos-economicos-rbc.pdf)
+[Descargar paper](paper/RBC (I).pdf)
 
 ## Aplicación en línea
 
