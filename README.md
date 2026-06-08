@@ -122,7 +122,7 @@ k_t \\
 El shock tecnológico sigue un proceso autorregresivo de primer orden:
 
 ```math
-\theta_{t+1} = \rho \theta_t + \varepsilon_{t+1}
+\tilde{\theta}_{t+1} = \rho \tilde{\theta}_t + \varepsilon_{t+1}
 ```
 
 donde:
@@ -264,7 +264,7 @@ Si se utiliza esta aplicación como material de apoyo, puede citarse como:
   title = {RBC — Correlaciones cruzadas},
   year = {2026},
   note = {Aplicación computacional complementaria del working paper Modelo Neoclásico de Ciclos Económicos (I)},
-  url = {https://github.com/TU-USUARIO/NOMBRE-DEL-REPOSITORIO}
+  url = {https://github.com/pmonrocle/RBC-Model/tree/main}
 }
 ```
 
