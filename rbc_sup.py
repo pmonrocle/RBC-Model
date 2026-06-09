@@ -1,3 +1,11 @@
+"""
+RBC — Correlaciones cruzadas
+Aplicación de simulación del modelo neoclásico de ciclos económicos reales.
+
+Autor: Pablo Monrocle Arribas
+Copyright (c) 2025 Pablo Monrocle Arribas. Todos los derechos reservados.
+"""
+
 import numpy as np
 import pandas as pd
 import streamlit as st
