@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from scipy.linalg import ordqz
 from statsmodels.tsa.filters.hp_filter import hpfilter
 
-st.set_page_config(page_title="RBC — Correlaciones cruzadas", layout="centered")
+st.set_page_config(page_title="RBC — Correlaciones cruzadas", layout="wide")
 
 # Parámetros fijos
 BENCH = dict(
