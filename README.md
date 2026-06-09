@@ -1,6 +1,7 @@
 # RBC — Correlaciones cruzadas
 
-<img width="1518" height="863" alt="image" src="https://github.com/user-attachments/assets/3b6a9998-3aa0-4c5b-a682-b8754ef12af0" />
+<img width="1486" height="901" alt="image" src="https://github.com/user-attachments/assets/451a332b-b311-4e17-9eb4-a2581c0a1d9a" />
+
 
 
 Aplicación interactiva desarrollada en **Python** y **Streamlit** para simular un modelo **Real Business Cycle (RBC)**, comparar sus versiones con trabajo divisible e indivisible, y analizar sus propiedades cíclicas mediante volatilidades, correlaciones contemporáneas y correlaciones cruzadas.
