@@ -8,7 +8,7 @@ Aplicación interactiva desarrollada en **Python** y **Streamlit** para simular 
 
 Esta aplicación nace como material computacional complementario del artículo:
 
-**Monrocle Arribas, P. (2026). *Modelo Neoclásico de Ciclos Económicos (I)*. Documento de Trabajo / Working Paper.**
+**Monrocle Arribas, P. (2026). *Modelo Neoclásico de Ciclos Económicos (I)*. Notas de trabajo/ Working Notes.**
 
 La herramienta permite trasladar parte de la discusión teórica del artículo a un entorno interactivo, de forma que el lector pueda modificar parámetros, simular el modelo y observar cómo cambian las propiedades cíclicas del producto, el consumo, la inversión, el capital y el trabajo.
 
@@ -253,7 +253,7 @@ Algunos ejemplos:
 
 ## Referencia del paper
 
-Monrocle Arribas, P. (2026). *Modelo Neoclásico de Ciclos Económicos (I)*. Documento de Trabajo / Working Paper.
+Monrocle Arribas, P. (2026). *Modelo Neoclásico de Ciclos Económicos (I)*. Notas de trabajo/ Working Notes.
 
 ## Cómo citar este repositorio
 
