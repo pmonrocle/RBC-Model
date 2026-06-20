@@ -264,7 +264,7 @@ Si se utiliza esta aplicación como material de apoyo, puede citarse como:
   author = {Monrocle Arribas, Pablo},
   title = {RBC — Correlaciones cruzadas},
   year = {2026},
-  note = {Aplicación computacional complementaria del working paper Modelo Neoclásico de Ciclos Económicos (I)},
+  note = {Aplicación computacional complementaria del working notes Modelo Neoclásico de Ciclos Económicos (I)},
   url = {https://github.com/pmonrocle/RBC-Model/tree/main}
 }
 ```
