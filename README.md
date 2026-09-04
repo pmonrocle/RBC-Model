@@ -4,7 +4,7 @@
 
 
 
-Aplicación interactiva desarrollada en **Python** y **Streamlit** para simular un modelo **Real Business Cycle (RBC)**, comparar sus versiones con trabajo divisible e indivisible, y analizar sus propiedades cíclicas mediante volatilidades, correlaciones contemporáneas y correlaciones cruzadas.
+Aplicación desarrollada en **Python** y publicada en **Streamlit** para simular el modelo **Real Business Cycle (RBC)** en su versión estandar, comparar su version con trabajo divisible e indivisible, y analizar sus propiedades cíclicas mediante volatilidades, correlaciones contemporáneas y correlaciones cruzadas.
 
 Esta aplicación nace como material computacional complementario del artículo:
 
